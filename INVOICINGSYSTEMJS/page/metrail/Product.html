@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+
+		<script type="text/javascript" src="../../js/jquery-3.0.0.min.js"></script>
+		<link rel="stylesheet" href="../../layui/layui/css/layui.css" />
+		<script type="text/javascript" src="../../layui/layui/layui.all.js"></script>
+		<script type="text/javascript" src="../../layui/layui/lay/modules/laypage.js"></script>
+		<style type="text/css">
+			.layui-table-cell {
+				height: auto;
+				line-height: 28px;
+			}
+		</style>
+		<script>
+			$(function() {
+
+				layui.use('table', function() {
+					var table = layui.table;
+
+					//方法级渲染
+					tableIns = table.render({
+						elem: '#demo',
+						url: 'http://localhost:8090/Product/queryProduct', //数据接口
+						page: true, //开启分页
+						cols: [
+							[{
+									checkbox: true,
+									unresize: true, //自定义托拽列宽
+								}, {
+									field: 'productId',
+
+									title: '商品id',
+									width: 150,
+								}, {
+									field: 'productName',
+									title: '商品名称',
+									width: 150
+								}, {
+									field: 'prodectSell',
+									title: '商品售价',
+									width: 150,
+									sort: true
+								}, {
+									field: 'prodectdRemark',
+									title: '商品备注',
+									width: 150
+								}, {
+									field: 'typeDataId',
+									title: '商品分类',
+									width: 177
+								}, {
+									field: 'recipeId',
+									title: '原料表中配方id',
+									width: 150,
+									sort: true
+								}, {
+									field: 'prodectState',
+									title: '是否下架',
+									width: 150,
+									sort: true
+								}, {
+									field: 'right',
+									title: '操作',
+									width: 300,
+									toolbar: "#barDemo"
+								}
+
+							]
+						]
+					});
+					//分页
+
+				})
+
+			})
+
+			$(document).on('click', '#earsy', function() {
+				/*reload: function() {*/
+				var demoReload = $('#demoReload').val();
+				console.log(demoReload);
+				tableIns.reload({
+					where: { //设定异步数据接口的额外参数，任意设
+						materialName: demoReload
+					},
+					page: {
+						curr: 1 //重新从第 1 页开始
+					}
+				});
+
+				//}
+			})
+
+			function addMetrail() {
+				/*	sessionStorage.clear();*/
+				sessionStorage.removeItem("Metrailurlid");
+				sessionStorage.removeItem("addwhthupdateMetrailurl");
+				sessionStorage.setItem("addwhthupdateMetrailurl", "http://localhost:8090/Product/AddProduct");
+
+				layui.use('layer', function() {
+					var layer = layui.layer;
+
+					layer.open({
+						type: 1,
+						title: '添加原材料信息',
+						area: ['400px', '500px'],
+						content: $('#divwin'),
+						cancel: function(index, layero) {
+							/*layer.closeAll();*/
+							$("#divwin").hide();
+						}
+					});
+
+				});
+			}
+
+			function ads(data) {
+				var ids = [];
+				data.forEach(function(n, i) {
+					ids.push(n.meterialId);
+				});
+				sessionStorage.setItem("ids", ids);
+			}
+
+			var table = layui.table;
+			table.on('checkbox(demome)', function(obj) {
+				var checkStatus = table.checkStatus('demo');
+				data = checkStatus.data;
+				ads(data);
+				var ids = sessionStorage.getItem("ids");
+				$(document).on('click', '#deletemes', function() {
+					if(ids != null) {
+						layer.confirm('确定要删除选中的用户吗？', function(index) {
+							url = 'http://localhost:8090/Meterial/deleteMetrail',
+								$.post(url, {
+										eventids: ids
+									},
+									function(r) {
+										if(r > 0) {
+											layer.msg("成功")
+											tableIns.reload({});
+											sessionStorage.removeItem("ids");
+										} else {
+											sessionStorage.removeItem("ids");
+											layer.msg("失败")
+										}
+									}, "json");
+						});
+
+					}
+
+				})
+
+			});
+
+			var table = layui.table;
+			table.on('tool(demome)', function(obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+
+				var data = obj.data; //获得当前行数据
+				var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+				var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+				if(layEvent === 'detail') { //查看
+
+				} else if(layEvent === 'edit') {
+					console.log(data.productId)
+					sessionStorage.removeItem("addwhthupdateMetrailurl");
+					sessionStorage.setItem("addwhthupdateMetrailurl", "http://localhost:8090/Product/AddProduct");
+					$("#meterialId").val(data.productId);
+					layui.use('layer', function() {
+						var layer = layui.layer;
+						layer.open({
+							type: 1,
+							title: '修改原材料信息',
+							area: ['400px', '500px'],
+							content: $('#divwin'),
+							cancel: function(index, layero) {
+								/*layer.closeAll();*/
+								$("#divwin").hide();
+							}
+						});
+
+					});
+
+				} else if(layEvent === 'del') {
+					url = "http://localhost:8090/Meterial/deleteMetrail"
+					var layer = layui.layer;
+					$.post(url, {
+							meterialId: data.meterialId
+						},
+						function(r) {
+							if(r > 0) {
+								layer.msg("成功")
+								tableIns.reload({});
+							} else {
+								layer.msg("失败")
+							}
+						}, "json");
+
+				}
+			});
+
+			layui.use('form', function() {
+				var form = layui.form;
+				//监听提交
+				var url = sessionStorage.getItem("addwhthupdateMetrailurl");
+
+				form.on('submit(formDemo)', function(data) {
+					let Met = $("#dateupadd").serialize();
+					url: url
+					$.post(url,
+						Met,
+						function(r) {
+							if(r > 0) {
+								layer.msg("成功")
+								var index = layer.getFrameIndex(name); //获取窗口索引
+								layer.closeAll();
+								$("#divwin").hide();
+								tableIns.reload({});
+								//	window.parent.location.reload(); //刷新父页面
+							} else {
+								layer.msg("失败")
+							}
+						}, "json");
+					return false;
+				});
+			});
+		</script>
+	</head>
+
+	<body>
+		<div class="demoTable">
+			&nbsp; 搜索材料：
+			<div class="layui-inline">
+				<input class="layui-input" name="keyword" id="demoReload" autocomplete="off">
+			</div>
+			<button class="layui-btn" data-type="reload" id="earsy">搜索</button>
+
+			<button class="layui-btn layui-btn-normal layui-btn-radius" onclick="addMetrail()">添加</button>
+			<button class="layui-btn layui-btn-normal layui-btn-radius" data-type="getCheckData" id="deletemes">批量删除</button>
+		</div>
+
+		<table class="layui-hide" id="demo" lay-filter="demome"></table>
+		<script type="text/html" id="barDemo">
+			<a class="layui-btn layui-btn-primary layui-btn-mini" lay-event="detail">查看</a>
+			<a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+		</script>
+		<div style="width: 400px; display: none;" id="divwin">
+			<form class="layui-form" id="dateupadd">
+
+				<div class="layui-form-item">
+					<label class="layui-form-label">商品名称</label>
+					<div class="layui-input-block">
+						<input type="hidden" name="productId" id="meterialId" />
+						<input id="hhh" style="width: 200px;" type="text" name="productName" required lay-verify="required" placeholder="请输入商品名称" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">商品售价</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="prodectSell" required lay-verify="required" placeholder="请输入商品售价" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">商品备注</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="prodectdRemark" required lay-verify="required" placeholder="请输入商品备注" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">商品分类</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="typeDataId" required lay-verify="required" placeholder="请输入商品分类" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">原料表中配方id</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="recipeId" required lay-verify="required" placeholder="原料表中配方id" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">是否下架</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="prodectState" required lay-verify="required" placeholder="是否下架" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-block">
+						<input type="hidden" value="0" name="isdelete" />
+					</div>
+
+					<div class="layui-form-item">
+						<div class="layui-input-block">
+							<button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+							<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+						</div>
+					</div>
+	</body>
+
+</html>

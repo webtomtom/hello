@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script type="text/javascript" src="../../js/jquery-3.0.0.min.js"></script>
+		<link rel="stylesheet" href="../../layui/layui/css/layui.css" />
+		<script type="text/javascript" src="../../layui/layui/layui.all.js"></script>
+		<script type="text/javascript" src="../../layui/layui/lay/modules/laypage.js"></script>
+
+		<script>
+			$(function() {
+				var Metrailurlid = sessionStorage.getItem("Metrailurlid");
+				$("#meterialId").val(Metrailurlid);
+
+			})
+
+			layui.use('form', function() {
+				var form = layui.form;
+				//监听提交
+				var url = sessionStorage.getItem("addwhthupdateMetrailurl");
+
+				form.on('submit(formDemo)', function(data) {
+					let Met = $("#dateupadd").serialize();
+					url: url
+					$.post(url,
+						Met,
+						function(r) {
+							if(r > 0) {
+								layer.msg("成功")
+								var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+								parent.layer.close(index);
+								parent.tableIns.reload({});
+								/*	window.parent.location.reload(); //刷新父页面*/
+							} else {
+								layer.msg("失败")
+							}
+						}, "json");
+					return false;
+				});
+			});
+		</script>
+	</head>
+
+	<body>
+		<div style="width: 400px;">
+			<form class="layui-form" id="dateupadd">
+
+				<div class="layui-form-item">
+					<label class="layui-form-label">材料名称</label>
+					<div class="layui-input-block">
+						<input type="hidden" name="meterialId" id="meterialId" />
+						<input id="hhh" style="width: 200px;" type="text" name="materialName" required lay-verify="required" placeholder="请输入材料名称" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">原材料数量</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="materialNumber" required lay-verify="required" placeholder="请输入原材料数量" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">原材料进价</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="materialoPenpRice" required lay-verify="required" placeholder="请输入原材料进价" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">材料保质期</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="expirationDate" required lay-verify="required" placeholder="请输入材料保质期" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">原材料状态</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="materialState" required lay-verify="required" placeholder="请输入原材料状态" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">原料类型</label>
+					<div class="layui-input-block"><input style="width: 200px;" type="text" name="typeDataId" required lay-verify="required" placeholder="请输入原料类型" autocomplete="off" class="layui-input"></div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">所属仓库id</label>
+					<div class="layui-input-block">
+						<input type="hidden" value="0" name="isDelete" />
+						<input style="width: 200px;" type="text" name="wareHouseId" required lay-verify="required" placeholder="请输入所属仓库id" autocomplete="off" class="layui-input"></div>
+				</div>
+
+				<div class="layui-form-item">
+					<div class="layui-input-block">
+						<button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+						<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</body>
+
+</html>
